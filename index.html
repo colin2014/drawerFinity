@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawfinity | Gridfinity Cabinet & Drawer Generator</title>
+    <meta name="description" content="Precision MakerCase-style laser cut box and cabinet generator tailored specifically for Gridfinity modular storage.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header glass-panel">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Drawfinity</h1>
+                    <span class="subtitle">Gridfinity Laser Cut Generator</span>
+                </div>
+            </div>
+
+            <div class="quick-stats" id="quickStats">
+                <div class="stat-badge">
+                    <span class="stat-label">Grid Units</span>
+                    <span class="stat-value" id="statGrid">4 × 3</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Max Height</span>
+                    <span class="stat-value" id="statHeight">6U (42mm)</span>
+                </div>
+                <div class="stat-badge accent">
+                    <span class="stat-label">Cabinet Size</span>
+                    <span class="stat-value" id="statCabSize">180 × 135 × 150 mm</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="https://github.com" target="_blank" class="btn btn-ghost" title="Host on GitHub Pages">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    <span>GitHub Ready</span>
+                </a>
+                <button class="btn btn-primary glow" id="btnDownloadAll">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Download as Zip</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-workspace">
+            <!-- Left Controls Sidebar -->
+            <aside class="controls-sidebar glass-panel">
+                <!-- Mode Toggle -->
+                <div class="control-section">
+                    <div class="section-header">
+                        <h2>1. Sizing & Grid Logic</h2>
+                    </div>
+                    <div class="tabs-segmented">
+                        <button class="tab-btn active" data-mode="grid">Gridfinity Units</button>
+                        <button class="tab-btn" data-mode="mm">Exact Millimeters</button>
+                    </div>
+
+                    <!-- Grid Mode Controls -->
+                    <div class="mode-panel active" id="panelGridMode">
+                        <div class="form-group">
+                            <label>Drawer Width (Grid Columns)</label>
+                            <div class="number-input-group">
+                                <button class="num-btn" data-action="dec" data-target="gridX">-</button>
+                                <input type="number" id="gridX" value="3" min="1" max="12">
+                                <button class="num-btn" data-action="inc" data-target="gridX">+</button>
+                                <span class="unit-tag">× 42mm</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Drawer Depth (Grid Rows)</label>
+                            <div class="number-input-group">
+                                <button class="num-btn" data-action="dec" data-target="gridY">-</button>
+                                <input type="number" id="gridY" value="3" min="1" max="12">
+                                <button class="num-btn" data-action="inc" data-target="gridY">+</button>
+                                <span class="unit-tag">× 42mm</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Drawer Height (Grid Units)</label>
+                            <div class="number-input-group">
+                                <button class="num-btn" data-action="dec" data-target="gridZ">-</button>
+                                <input type="number" id="gridZ" value="6" min="2" max="24">
+                                <button class="num-btn" data-action="inc" data-target="gridZ">+</button>
+                                <span class="unit-tag">× 7mm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MM Mode Controls -->
+                    <div class="mode-panel" id="panelMmMode">
+                        <div class="form-group">
+                            <label>Internal Drawer Width</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="mmWidth" value="126" min="40" max="600" step="1">
+                                <span class="unit">mm</span>
+                            </div>
+                            <span class="help-text" id="helpWidth">Fits exactly 3 Grid columns</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Internal Drawer Depth</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="mmDepth" value="126" min="40" max="600" step="1">
+                                <span class="unit">mm</span>
+                            </div>
+                            <span class="help-text" id="helpDepth">Fits exactly 3 Grid rows</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Internal Drawer Clearance Height</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="mmHeight" value="45" min="15" max="300" step="1">
+                                <span class="unit">mm</span>
+                            </div>
+                            <span class="help-text" id="helpHeight">Fits 6U items (42mm) + clearance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout & Cabinet Configuration -->
+                <div class="control-section">
+                    <div class="section-header">
+                        <h2>2. Cabinet Layout</h2>
+                    </div>
+                    <div class="grid-2col">
+                        <div class="form-group">
+                            <label>Columns (Horizontal)</label>
+                            <input type="number" id="cabCols" class="input-compact" value="1" min="1" max="6">
+                        </div>
+                        <div class="form-group">
+                            <label>Drawer Tiers (Vertical)</label>
+                            <input type="number" id="cabRows" class="input-compact" value="2" min="1" max="8">
+                        </div>
+                    </div>
+                    <div class="checkbox-group mt-2">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="genCabinet" checked>
+                            <span class="checkmark"></span>
+                            <span>Generate Outer Cabinet & Shelf Dividers</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Material & Joints -->
+                <div class="control-section collapsed">
+                    <div class="section-header">
+                        <h2>3. Materials & Joints</h2>
+                    </div>
+                    <div class="form-group">
+                        <label>Material Thickness</label>
+                        <select id="matThickness">
+                            <option value="3">3.0 mm (Standard Acrylic / MDF)</option>
+                            <option value="3.175">3.175 mm (1/8 inch Plywood)</option>
+                            <option value="4">4.0 mm</option>
+                            <option value="5">5.0 mm</option>
+                            <option value="6">6.0 mm (Heavy Duty Wood)</option>
+                            <option value="6.35">6.35 mm (1/4 inch Plywood)</option>
+                            <option value="custom">Custom Thickness...</option>
+                        </select>
+                        <div class="input-with-unit mt-2 hidden" id="customThickGroup">
+                            <input type="number" id="customThick" value="3.0" step="0.1" min="1" max="15">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label-with-value">
+                            <label>Finger Joint Size</label>
+                            <span class="slider-val" id="valTabSize">Medium (~15mm)</span>
+                        </div>
+                        <input type="range" id="tabSize" min="8" max="30" value="15" step="1">
+                        <div class="slider-labels">
+                            <span>Fine</span>
+                            <span>Medium</span>
+                            <span>Chunky</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label-with-value">
+                            <label title="Offsets cuts slightly outward so parts friction-fit tightly without glue">Kerf Compensation (Snug Fit)</label>
+                            <span class="slider-val accent" id="valKerf">0.12 mm (Optimal)</span>
+                        </div>
+                        <input type="range" id="kerf" min="0" max="0.30" value="0.12" step="0.01">
+                        <div class="slider-labels">
+                            <span>Loose (0mm)</span>
+                            <span>Snug</span>
+                            <span>Tight (0.3mm)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware & Handles -->
+                <div class="control-section collapsed">
+                    <div class="section-header">
+                        <h2>4. Handles & Hardware</h2>
+                    </div>
+                    <div class="form-group">
+                        <label>Drawer Front Pull Style</label>
+                        <select id="handleStyle">
+                            <option value="rects64">Dual Rectangular Prongs (5×10mm rects, 64mm spacing)</option>
+                            <option value="rects32">Dual Compact Rectangles (4×8mm rects, 32mm spacing)</option>
+                            <option value="rects96">Dual Wide Rectangles (5×10mm rects, 96mm spacing)</option>
+                            <option value="slot">Single Long Mount Slot (60×10mm)</option>
+                            <option value="screws64">Round Bolt Holes (3.4mm round, 64mm spacing)</option>
+                            <option value="notch">Ergonomic Finger Cutout Notch</option>
+                            <option value="none">Flush Front (No Cutout)</option>
+                        </select>
+                    </div>
+                    <div class="info-box mt-2">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Bottom plates are clean flat panels designed for standard 3D printed Gridfinity baseplates to drop right in.</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Visualizer & Preview Area -->
+            <section class="preview-stage glass-panel">
+                <div class="stage-toolbar">
+                    <div class="stage-tabs">
+                        <button class="stage-tab active" data-view="3d">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            <span>3D Interactive Preview</span>
+                        </button>
+                        <button class="stage-tab" data-view="2d">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                            <span>2D Laser Cut Sheet & Individual SVGs</span>
+                        </button>
+                    </div>
+
+                    <div class="stage-controls">
+                        <button class="btn btn-sm btn-outline" id="btnWireframe">🕸️ Wireframe</button>
+                        <button class="btn btn-sm btn-outline" id="btnExplode">📂 Open Drawers</button>
+                        <button class="btn btn-sm btn-outline" id="btnResetCamera">🔄 Center View</button>
+                    </div>
+                </div>
+
+                <!-- Preview Canvas Container -->
+                <div class="canvas-viewport" id="viewport">
+                    <!-- 3D WebGL View -->
+                    <div class="view-container active" id="view3d">
+                        <div id="canvas3d" style="width: 100%; height: 100%; position: relative;"></div>
+                        <div class="dim-badge badge-w" id="dimW">↔ Width: -- mm</div>
+                        <div class="dim-badge badge-d" id="dimD">↗ Depth: -- mm</div>
+                        <div class="dim-badge badge-h" id="dimH">↕ Height: -- mm</div>
+                    </div>
+
+                    <!-- 2D Cut Sheet View -->
+                    <div class="view-container" id="view2d">
+                        <div class="cutsheet-header">
+                            <h3>Generated Cut Parts</h3>
+                            <span class="hint">Click any individual panel to download its standalone SVG file</span>
+                        </div>
+                        <div class="panels-grid" id="panelsGrid">
+                            <!-- Dynamically populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Three.js, OrbitControls & JSZip Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="generator.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
