@@ -232,32 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnDownloadAll.innerHTML = '⏳ <span>Creating Zip...</span>';
         dom.btnDownloadAll.disabled = true;
 
-        zip.generateAsync({ type: "blob" }).then(async blob => {
+        zip.generateAsync({ type: "blob" }).then(blob => {
             const fileName = `Drawfinity_Laser_Cut_Files.zip`;
-            if (window.showSaveFilePicker) {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: fileName,
-                        types: [{
-                            description: 'ZIP Archive',
-                            accept: { 'application/zip': ['.zip'] }
-                        }]
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(blob);
-                    await writable.close();
-                    dom.btnDownloadAll.innerHTML = origHtml;
-                    dom.btnDownloadAll.disabled = false;
-                    return;
-                } catch (err) {
-                    if (err.name === 'AbortError') {
-                        dom.btnDownloadAll.innerHTML = origHtml;
-                        dom.btnDownloadAll.disabled = false;
-                        return;
-                    }
-                }
-            }
-
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
