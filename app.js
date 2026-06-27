@@ -99,6 +99,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. EVENT LISTENERS ---
 
+    // Settings Panel: open/close gear dropdown
+    const btnSettings = document.getElementById('btnSettings');
+    const settingsDropdown = document.getElementById('settingsDropdown');
+    if (btnSettings && settingsDropdown) {
+        btnSettings.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = settingsDropdown.style.display !== 'none';
+            settingsDropdown.style.display = isOpen ? 'none' : 'block';
+        });
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('settingsWrapper').contains(e.target)) {
+                settingsDropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // Light Mode Toggle
+    const toggleLightMode = document.getElementById('toggleLightMode');
+    if (toggleLightMode) {
+        toggleLightMode.addEventListener('change', () => {
+            document.body.classList.toggle('light-mode', toggleLightMode.checked);
+        });
+    }
+
+    // Mobile Simulator Toggle
+    const toggleMobileView = document.getElementById('toggleMobileView');
+    if (toggleMobileView) {
+        toggleMobileView.addEventListener('change', () => {
+            document.body.classList.toggle('mobile-sim', toggleMobileView.checked);
+            // Trigger a Three.js resize after the layout shifts
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+        });
+    }
+
     // Collapsible Accordion Sections
     document.querySelectorAll('.section-header').forEach(header => {
         header.addEventListener('click', () => {
