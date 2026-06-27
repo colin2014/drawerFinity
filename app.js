@@ -6,6 +6,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     // App State
     const state = {
+        drFabMethod: '3dprint', // 'laser' | '3dprint'
+        cabFabMethod: '3dprint',  // 'laser' | '3dprint'
+        wizardMode: true,
+        wizardStep: 1,
         mode: 'grid', // 'grid' | 'mm'
         gridX: 3,
         gridY: 3,
@@ -32,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statGrid: document.getElementById('statGrid'),
         statHeight: document.getElementById('statHeight'),
         statCabSize: document.getElementById('statCabSize'),
-        tabBtns: document.querySelectorAll('.tab-btn'),
+        tabBtns: document.querySelectorAll('[data-mode]'),
         panelGridMode: document.getElementById('panelGridMode'),
         panelMmMode: document.getElementById('panelMmMode'),
         gridX: document.getElementById('gridX'),
@@ -58,6 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         kerf: document.getElementById('kerf'),
         valKerf: document.getElementById('valKerf'),
         handleStyle: document.getElementById('handleStyle'),
+        drFabBtns: document.querySelectorAll('#drFabTabs .tab-btn'),
+        cabFabBtns: document.querySelectorAll('#cabFabTabs .tab-btn'),
         stageTabs: document.querySelectorAll('.stage-tab'),
         view3d: document.getElementById('view3d'),
         view2d: document.getElementById('view2d'),
@@ -70,7 +76,20 @@ document.addEventListener('DOMContentLoaded', () => {
         btnWireframe: document.getElementById('btnWireframe'),
         btnExplode: document.getElementById('btnExplode'),
         btnResetCamera: document.getElementById('btnResetCamera'),
-        btnDownloadAll: document.getElementById('btnDownloadAll')
+        btnDownloadAll: document.getElementById('btnDownloadAll'),
+        btnModeWizard: document.getElementById('btnModeWizard'),
+        btnModeAdvanced: document.getElementById('btnModeAdvanced'),
+        wizardBanner: document.getElementById('wizardBanner'),
+        wizardStepTitle: document.getElementById('wizardStepTitle'),
+        wizardStepCount: document.getElementById('wizardStepCount'),
+        wizardStepDesc: document.getElementById('wizardStepDesc'),
+        wizardNav: document.getElementById('wizardNav'),
+        btnWizardPrev: document.getElementById('btnWizardPrev'),
+        btnWizardNext: document.getElementById('btnWizardNext'),
+        secStep1: document.getElementById('secStep1'),
+        secStep2: document.getElementById('secStep2'),
+        secStep3: document.getElementById('secStep3'),
+        secStep4: document.getElementById('secStep4')
     };
 
     // --- 1. EVENT LISTENERS ---
@@ -81,6 +100,93 @@ document.addEventListener('DOMContentLoaded', () => {
             header.parentElement.classList.toggle('collapsed');
         });
     });
+
+    function updateWizardUI() {
+        if (!dom.btnModeWizard) return;
+        dom.btnModeWizard.style.background = state.wizardMode ? 'var(--primary)' : 'transparent';
+        dom.btnModeWizard.style.color = state.wizardMode ? '#fff' : '#aaa';
+        dom.btnModeAdvanced.style.background = !state.wizardMode ? 'var(--primary)' : 'transparent';
+        dom.btnModeAdvanced.style.color = !state.wizardMode ? '#fff' : '#aaa';
+
+        if (!state.wizardMode) {
+            if (dom.wizardBanner) dom.wizardBanner.style.display = 'none';
+            if (dom.wizardNav) dom.wizardNav.style.display = 'none';
+            [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4].forEach(sec => {
+                if (sec) sec.style.display = 'block';
+            });
+            return;
+        }
+
+        if (dom.wizardBanner) dom.wizardBanner.style.display = 'block';
+        if (dom.wizardNav) dom.wizardNav.style.display = 'flex';
+        [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4].forEach(sec => {
+            if (sec) sec.style.display = 'none';
+        });
+
+        const activeSec = [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4][state.wizardStep - 1];
+        if (activeSec) {
+            activeSec.style.display = 'block';
+            activeSec.classList.remove('collapsed');
+        }
+
+        if (dom.wizardStepCount) dom.wizardStepCount.textContent = `${state.wizardStep} of 4`;
+        if (dom.btnWizardPrev) dom.btnWizardPrev.style.display = state.wizardStep > 1 ? 'block' : 'none';
+
+        if (state.wizardStep === 1) {
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 1: Footprint & Dimensions";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "How many Gridfinity units wide and deep should your storage box occupy on your workbench?";
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Cabinet Layout ➡️"; }
+        } else if (state.wizardStep === 2) {
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 2: Multi-Drawer Layout";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Do you want a single open storage box, or a multi-drawer cabinet divided into rows and columns?";
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Materials & Joints ➡️"; }
+        } else if (state.wizardStep === 3) {
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 3: Materials & Joints";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Select the material thickness you plan to use for laser cutting or your 3D printer shell specifications.";
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Handles & Export ➡️"; }
+        } else if (state.wizardStep === 4) {
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 4: Pull Handle & Export";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Choose how you want to pull open your drawer. For 3D printing, snap-fit alignment pegs automatically match your selection!";
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'none'; }
+        }
+    }
+
+    if (dom.btnModeWizard) {
+        dom.btnModeWizard.addEventListener('click', () => { state.wizardMode = true; updateWizardUI(); });
+        dom.btnModeAdvanced.addEventListener('click', () => { state.wizardMode = false; updateWizardUI(); });
+        if (dom.btnWizardPrev) dom.btnWizardPrev.addEventListener('click', () => { if (state.wizardStep > 1) { state.wizardStep--; updateWizardUI(); } });
+        if (dom.btnWizardNext) dom.btnWizardNext.addEventListener('click', () => { if (state.wizardStep < 4) { state.wizardStep++; updateWizardUI(); } });
+    }
+
+    function updateFabMethodUI() {
+        if (dom.btnDownloadAll) {
+            dom.btnDownloadAll.style.opacity = '1';
+        }
+    }
+
+    if (dom.drFabBtns) {
+        dom.drFabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                dom.drFabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.drFabMethod = btn.dataset.fab;
+                updateFabMethodUI();
+                updateAndRender();
+            });
+        });
+    }
+
+    if (dom.cabFabBtns) {
+        dom.cabFabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                dom.cabFabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.cabFabMethod = btn.dataset.fab;
+                updateFabMethodUI();
+                updateAndRender();
+            });
+        });
+    }
 
     // Segmented Mode Switch
     dom.tabBtns.forEach(btn => {
@@ -233,30 +339,139 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const zip = new JSZip();
-        const cabFolder = zip.folder(`cabinet_${state.cabThickness}mm`);
-        const drFolder = zip.folder(`drawers_${state.drThickness}mm`);
-
-        // Master Cut Sheet in root
-        const masterSvg = BoxGenerator.generateMasterCutSheet(generatedParts);
-        zip.file("drawfinity_master_cutsheet.svg", masterSvg);
-
-        // Individual parts categorized into folders
-        generatedParts.forEach(part => {
-            const standaloneSvg = BoxGenerator.partToSVG(part);
-            const fileName = `${part.id}_qty${part.count}.svg`;
-            if (part.type === 'drawer') {
-                drFolder.file(fileName, standaloneSvg);
-            } else {
-                cabFolder.file(fileName, standaloneSvg);
-            }
-        });
+        const drW = state.gridX * 42 + state.drThickness * 2;
+        const drD = state.gridY * 42 + state.drThickness * 2;
+        const drH = state.mmHeight + state.drThickness;
+        const printTh = 1.6;
 
         const origHtml = dom.btnDownloadAll.innerHTML;
-        dom.btnDownloadAll.innerHTML = '⏳ <span>Creating Zip...</span>';
+        dom.btnDownloadAll.innerHTML = '⏳ <span>Creating Files...</span>';
         dom.btnDownloadAll.disabled = true;
 
+        // 1. 3D PRINT STLs (if applicable)
+        if (state.drFabMethod === '3dprint' || (state.cabFabMethod === '3dprint' && state.genCabinet)) {
+            if (typeof THREE.STLExporter === 'undefined') {
+                alert("STL Exporter library is loading...");
+                dom.btnDownloadAll.innerHTML = origHtml;
+                dom.btnDownloadAll.disabled = false;
+                return;
+            }
+            const exporter = new THREE.STLExporter();
+            const mat = new THREE.MeshBasicMaterial();
+            const stlFolder = zip.folder("3D_Print_STLs");
+
+            if (state.drFabMethod === '3dprint') {
+                const binGroup = new THREE.Group();
+                function addBinPart(w, h, d, px, py, pz) {
+                    const g = new THREE.BoxGeometry(w, h, d);
+                    g.translate(px + w/2, py + h/2, pz + d/2);
+                    binGroup.add(new THREE.Mesh(g, mat));
+                }
+                addBinPart(drW, printTh, drD, 0, 0, 0);
+                addBinPart(printTh, drH - printTh, drD, 0, printTh, 0);
+                addBinPart(printTh, drH - printTh, drD, drW - printTh, printTh, 0);
+                addBinPart(drW - 2*printTh, drH - printTh, printTh, printTh, printTh, 0);
+
+                if (state.handleStyle === 'none') {
+                    addBinPart(drW - 2*printTh, drH - printTh, printTh, printTh, printTh, drD - printTh);
+                } else {
+                    let spacing = state.handleStyle === 'rects32' ? 32 : state.handleStyle === 'rects96' ? 96 : 64;
+                    if (drW < spacing + 30) spacing = Math.max(16, drW * 0.4);
+                    const pegW = 6, pegH = 10;
+                    const fwX = printTh, fwW = drW - 2 * printTh, fwY = printTh, fwH = drH - printTh;
+                    const hy = Math.max(fwY + 4, Math.min(fwY + fwH - pegH - 4, (drH - pegH) / 2));
+                    const cx1 = drW / 2 - spacing / 2, cx2 = drW / 2 + spacing / 2;
+
+                    addBinPart(cx1 - pegW/2 - fwX, fwH, printTh, fwX, fwY, drD - printTh);
+                    addBinPart(pegW, hy - fwY, printTh, cx1 - pegW/2, fwY, drD - printTh);
+                    addBinPart(pegW, (fwY + fwH) - (hy + pegH), printTh, cx1 - pegW/2, hy + pegH, drD - printTh);
+                    addBinPart((cx2 - pegW/2) - (cx1 + pegW/2), fwH, printTh, cx1 + pegW/2, fwY, drD - printTh);
+                    addBinPart(pegW, hy - fwY, printTh, cx2 - pegW/2, fwY, drD - printTh);
+                    addBinPart(pegW, (fwY + fwH) - (hy + pegH), printTh, cx2 - pegW/2, hy + pegH, drD - printTh);
+                    addBinPart((fwX + fwW) - (cx2 + pegW/2), fwH, printTh, cx2 + pegW/2, fwY, drD - printTh);
+                }
+
+                binGroup.updateMatrixWorld(true);
+                const binData = exporter.parse(binGroup, { binary: true });
+                stlFolder.file(`Drawer_Bin_${state.gridX}x${state.gridY}_${drH}mmH.stl`, new Blob([binData], { type: 'application/octet-stream' }));
+
+                if (state.handleStyle !== 'none') {
+                    const handleGroup = new THREE.Group();
+                    function addHandlePart(w, h, d, px, py, pz) {
+                        const g = new THREE.BoxGeometry(w, h, d);
+                        g.translate(px + w/2, py + h/2, pz + d/2);
+                        handleGroup.add(new THREE.Mesh(g, mat));
+                    }
+                    let spacing = state.handleStyle === 'rects32' ? 32 : state.handleStyle === 'rects96' ? 96 : 64;
+                    if (drW < spacing + 30) spacing = Math.max(16, drW * 0.4);
+                    const hw = Math.max(spacing + 24, Math.min(drW * 0.6, 90));
+                    const hh = 16, hd = state.cabThickness * 2;
+                    addHandlePart(hw, hh, hd, 0, 0, 0);
+                    addHandlePart(hw, hh * 0.4, hd * 0.5, 0, hh, 0);
+                    const pegW = 5.6, pegH = 9.6;
+                    const px1 = hw / 2 - spacing / 2 - pegW / 2, px2 = hw / 2 + spacing / 2 - pegW / 2;
+                    const py = (hh - pegH) / 2;
+                    addHandlePart(pegW, pegH, printTh, px1, py, hd);
+                    addHandlePart(pegW, pegH, printTh, px2, py, hd);
+
+                    handleGroup.updateMatrixWorld(true);
+                    const handleData = exporter.parse(handleGroup, { binary: true });
+                    stlFolder.file(`Drawer_Handle_Separate_${hw}mm.stl`, new Blob([handleData], { type: 'application/octet-stream' }));
+                }
+            }
+
+            if (state.cabFabMethod === '3dprint' && state.genCabinet) {
+                const cabGroup = new THREE.Group();
+                function addCabPart(w, h, d, px, py, pz) {
+                    const g = new THREE.BoxGeometry(w, h, d);
+                    g.translate(px + w/2, py + h/2, pz + d/2);
+                    cabGroup.add(new THREE.Mesh(g, mat));
+                }
+                const cabW = state.cabCols * (drW + 2.5) + state.cabThickness * 2;
+                const cabD = drD + 4;
+                const cabH = state.cabRows * (drH + 2.5) + state.cabThickness * 2;
+                const cTh = Math.max(2.0, state.cabThickness * 0.6);
+
+                addCabPart(cabW, cabH, cTh, 0, 0, 0);
+                addCabPart(cabW, cTh, cabD - cTh, 0, 0, cTh);
+                addCabPart(cabW, cTh, cabD - cTh, 0, cabH - cTh, cTh);
+                addCabPart(cTh, cabH - 2*cTh, cabD - cTh, 0, cTh, cTh);
+                addCabPart(cTh, cabH - 2*cTh, cabD - cTh, cabW - cTh, cTh, cTh);
+
+                if (state.cabRows > 1) {
+                    for (let r = 1; r < state.cabRows; r++) {
+                        const sy = r * (drH + 2.5) + state.cabThickness;
+                        addCabPart(cabW - 2*cTh, cTh, cabD - cTh, cTh, sy, cTh);
+                    }
+                }
+
+                cabGroup.updateMatrixWorld(true);
+                const cabData = exporter.parse(cabGroup, { binary: true });
+                stlFolder.file(`Cabinet_Outer_Shell_${state.cabCols}cols_${state.cabRows}tiers.stl`, new Blob([cabData], { type: 'application/octet-stream' }));
+            }
+        }
+
+        // 2. LASER CUT SVGs (if applicable)
+        const laserParts = generatedParts.filter(part => {
+            if (part.type === 'drawer' && state.drFabMethod === 'laser') return true;
+            if (part.type === 'cabinet' && state.cabFabMethod === 'laser') return true;
+            return false;
+        });
+
+        if (laserParts.length > 0) {
+            const svgFolder = zip.folder("Laser_Cut_SVGs");
+            const masterSvg = BoxGenerator.generateMasterCutSheet(laserParts);
+            svgFolder.file("master_cutsheet.svg", masterSvg);
+
+            laserParts.forEach(part => {
+                const standaloneSvg = BoxGenerator.partToSVG(part);
+                const fileName = `${part.id}_qty${part.count}.svg`;
+                svgFolder.file(fileName, standaloneSvg);
+            });
+        }
+
         zip.generateAsync({ type: "blob" }).then(blob => {
-            const fileName = `Drawfinity_CutFiles_Cab-${state.cabThickness}mm_Dr-${state.drThickness}mm.zip`;
+            const fileName = `Drawfinity_Production_Files_${state.gridX}x${state.gridY}.zip`;
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -266,6 +481,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
+            dom.btnDownloadAll.innerHTML = origHtml;
+            dom.btnDownloadAll.disabled = false;
+        }).catch(err => {
+            console.error("Error generating zip:", err);
+            alert("Failed to create download files.");
             dom.btnDownloadAll.innerHTML = origHtml;
             dom.btnDownloadAll.disabled = false;
         });
@@ -529,25 +749,41 @@ document.addEventListener('DOMContentLoaded', () => {
             addBox(th, th, th, 0, cabH - th, 0, matWoodEdge);
             addBox(th, th, th, cabW - th, cabH - th, 0, matWoodEdge);
 
-            // 3. Interlocking Finger Seams along 8 edges
-            addFingerSeam(0, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Left
-            addFingerSeam(cabW - th, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Right
-            addFingerSeam(0, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Left
-            addFingerSeam(cabW - th, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Right
+            // 3. Seams / Corner Joints
+            // 3. Seams / Corner Joints
+            if (state.cabFabMethod === '3dprint') {
+                addBox(th, th, cabD - 2*th, 0, cabH - th, th, matWoodEdge);
+                addBox(th, th, cabD - 2*th, cabW - th, cabH - th, th, matWoodEdge);
+                addBox(th, th, cabD - 2*th, 0, 0, th, matWoodEdge);
+                addBox(th, th, cabD - 2*th, cabW - th, 0, th, matWoodEdge);
+                addBox(cabW - 2*th, th, th, th, cabH - th, 0, matWood);
+                addBox(cabW - 2*th, th, th, th, 0, 0, matWood);
+                addBox(th, cabH - 2*th, th, 0, th, 0, matWoodEdge);
+                addBox(th, cabH - 2*th, th, cabW - th, th, 0, matWoodEdge);
+            } else {
+                addFingerSeam(0, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Left
+                addFingerSeam(cabW - th, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Right
+                addFingerSeam(0, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Left
+                addFingerSeam(cabW - th, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Right
 
-            addFingerSeam(th, cabH - th, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Top
-            addFingerSeam(th, 0, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Bottom
-            addFingerSeam(0, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Left
-            addFingerSeam(cabW - th, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Right
+                addFingerSeam(th, cabH - th, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Top
+                addFingerSeam(th, 0, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Bottom
+                addFingerSeam(0, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Left
+                addFingerSeam(cabW - th, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Right
+            }
 
             // Shelf Dividers
             if (state.cabRows > 1) {
                 for (let r = 1; r < state.cabRows; r++) {
                     const sy = r * (drH + 2.5) + th;
                     addBox(cabW - 2*th, th, cabD - th, th, sy, th, matWoodEdge);
-                    // Shelf finger mortises into left/right walls
-                    addFingerSeam(0, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
-                    addFingerSeam(cabW - th, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
+                    if (state.cabFabMethod === 'laser') {
+                        addFingerSeam(0, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
+                        addFingerSeam(cabW - th, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
+                    } else {
+                        addBox(th, th, cabD - th, 0, sy, th, matWoodEdge);
+                        addBox(th, th, cabD - th, cabW - th, sy, th, matWoodEdge);
+                    }
                 }
             }
         }
@@ -578,44 +814,77 @@ document.addEventListener('DOMContentLoaded', () => {
                     return m;
                 }
 
-                // 1. Central Face Plates
-                addDrPart(drW - 2*dth, dth, drD - 2*dth, dth, 0, dth, matDrawer); // Bottom
-                addDrPart(dth, drH - dth, drD - 2*dth, 0, dth, dth, matDrawerSide); // Left Side
-                addDrPart(dth, drH - dth, drD - 2*dth, drW - dth, dth, dth, matDrawerSide); // Right Side
-                addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, 0, matDrawerSide); // Rear Wall
-                addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, drD - dth, matDrawerFront); // Front Face
+                if (state.drFabMethod === '3dprint') {
+                    const pTh = 1.6;
+                    addDrPart(drW, pTh, drD, 0, 0, 0, matDrawer); // Bottom
+                    addDrPart(pTh, drH - pTh, drD, 0, pTh, 0, matDrawerSide); // Left wall
+                    addDrPart(pTh, drH - pTh, drD, drW - pTh, pTh, 0, matDrawerSide); // Right wall
+                    addDrPart(drW - 2*pTh, drH - pTh, pTh, pTh, pTh, 0, matDrawerSide); // Rear wall
 
-                // 2. Corner Blocks (dth x dth x dth)
-                addDrPart(dth, dth, dth, 0, 0, 0, matDrawerSide);
-                addDrPart(dth, dth, dth, drW - dth, 0, 0, matDrawerSide);
-                addDrPart(dth, dth, dth, 0, 0, drD - dth, matDrawerFront);
-                addDrPart(dth, dth, dth, drW - dth, 0, drD - dth, matDrawerFront);
-
-                // 3. Interlocking Finger Seams
-                addFingerSeam(0, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Left
-                addFingerSeam(drW - dth, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Right
-                addFingerSeam(dth, 0, 0, drW - 2*dth, 'x', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Back-Bottom
-                addFingerSeam(dth, 0, drD - dth, drW - 2*dth, 'x', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Bottom
-
-                addFingerSeam(0, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Left
-                addFingerSeam(drW - dth, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Right
-                addFingerSeam(0, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Left
-                addFingerSeam(drW - dth, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Right
-
-                // Handle Cutout Prongs indicators
-                if (state.handleStyle.startsWith('rects')) {
-                    let space = state.handleStyle === 'rects32' ? 32 : state.handleStyle === 'rects96' ? 96 : 64;
-                    const rw = state.handleStyle === 'rects32' ? 4 : 5;
-                    const rh = state.handleStyle === 'rects32' ? 8 : 10;
-                    if (drW < space + rw + 12) space = 32;
-                    if (drW < space + rw + 8) space = 0;
-
-                    const hy = Math.max(10, Math.min(26, (drH - rh) / 2));
-                    if (space === 0) {
-                        addDrPart(rw, rh, dth + 2, (drW-rw)/2, hy, drD - dth - 1, matHandle);
+                    if (state.handleStyle === 'none') {
+                        addDrPart(drW - 2*pTh, drH - pTh, pTh, pTh, pTh, drD - pTh, matDrawerFront);
                     } else {
-                        addDrPart(rw, rh, dth + 2, drW/2 - space/2 - rw/2, hy, drD - dth - 1, matHandle);
-                        addDrPart(rw, rh, dth + 2, drW/2 + space/2 - rw/2, hy, drD - dth - 1, matHandle);
+                        let spacing = state.handleStyle === 'rects32' ? 32 : state.handleStyle === 'rects96' ? 96 : 64;
+                        if (drW < spacing + 30) spacing = Math.max(16, drW * 0.4);
+                        const pegW = 6, pegH = 10;
+                        const fwX = pTh, fwW = drW - 2*pTh, fwY = pTh, fwH = drH - pTh;
+                        const hy = Math.max(fwY + 4, Math.min(fwY + fwH - pegH - 4, (drH - pegH) / 2));
+                        const cx1 = drW/2 - spacing/2, cx2 = drW/2 + spacing/2;
+
+                        addDrPart(cx1 - pegW/2 - fwX, fwH, pTh, fwX, fwY, drD - pTh, matDrawerFront);
+                        addDrPart(pegW, hy - fwY, pTh, cx1 - pegW/2, fwY, drD - pTh, matDrawerFront);
+                        addDrPart(pegW, (fwY+fwH) - (hy+pegH), pTh, cx1 - pegW/2, hy + pegH, drD - pTh, matDrawerFront);
+                        addDrPart((cx2 - pegW/2) - (cx1 + pegW/2), fwH, pTh, cx1 + pegW/2, fwY, drD - pTh, matDrawerFront);
+                        addDrPart(pegW, hy - fwY, pTh, cx2 - pegW/2, fwY, drD - pTh, matDrawerFront);
+                        addDrPart(pegW, (fwY+fwH) - (hy+pegH), pTh, cx2 - pegW/2, hy + pegH, drD - pTh, matDrawerFront);
+                        addDrPart((fwX+fwW) - (cx2 + pegW/2), fwH, pTh, cx2 + pegW/2, fwY, drD - pTh, matDrawerFront);
+
+                        // Render Handle hovering/snapped in front
+                        const hw = Math.max(spacing + 24, Math.min(drW * 0.6, 90));
+                        const hh = 16, hd = state.cabThickness * 2;
+                        const hZ = state.exploded ? drD + 15 : drD;
+                        addDrPart(hw, hh, hd, drW/2 - hw/2, hy - (hh-pegH)/2, hZ, matHandle);
+                    }
+                } else {
+                    // 1. Central Face Plates
+                    addDrPart(drW - 2*dth, dth, drD - 2*dth, dth, 0, dth, matDrawer); // Bottom
+                    addDrPart(dth, drH - dth, drD - 2*dth, 0, dth, dth, matDrawerSide); // Left Side
+                    addDrPart(dth, drH - dth, drD - 2*dth, drW - dth, dth, dth, matDrawerSide); // Right Side
+                    addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, 0, matDrawerSide); // Rear Wall
+                    addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, drD - dth, matDrawerFront); // Front Face
+
+                    // 2. Corner Blocks (dth x dth x dth)
+                    addDrPart(dth, dth, dth, 0, 0, 0, matDrawerSide);
+                    addDrPart(dth, dth, dth, drW - dth, 0, 0, matDrawerSide);
+                    addDrPart(dth, dth, dth, 0, 0, drD - dth, matDrawerFront);
+                    addDrPart(dth, dth, dth, drW - dth, 0, drD - dth, matDrawerFront);
+
+                    // 3. Interlocking Finger Seams
+                    addFingerSeam(0, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Left
+                    addFingerSeam(drW - dth, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Right
+                    addFingerSeam(dth, 0, 0, drW - 2*dth, 'x', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Back-Bottom
+                    addFingerSeam(dth, 0, drD - dth, drW - 2*dth, 'x', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Bottom
+
+                    addFingerSeam(0, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Left
+                    addFingerSeam(drW - dth, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Right
+                    addFingerSeam(0, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Left
+                    addFingerSeam(drW - dth, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Right
+
+                    // Handle Cutout Prongs indicators
+                    if (state.handleStyle.startsWith('rects')) {
+                        let space = state.handleStyle === 'rects32' ? 32 : state.handleStyle === 'rects96' ? 96 : 64;
+                        const rw = state.handleStyle === 'rects32' ? 4 : 5;
+                        const rh = state.handleStyle === 'rects32' ? 8 : 10;
+                        if (drW < space + rw + 12) space = 32;
+                        if (drW < space + rw + 8) space = 0;
+
+                        const hy = Math.max(10, Math.min(26, (drH - rh) / 2));
+                        if (space === 0) {
+                            addDrPart(rw, rh, dth + 2, (drW-rw)/2, hy, drD - dth - 1, matHandle);
+                        } else {
+                            addDrPart(rw, rh, dth + 2, drW/2 - space/2 - rw/2, hy, drD - dth - 1, matHandle);
+                            addDrPart(rw, rh, dth + 2, drW/2 + space/2 - rw/2, hy, drD - dth - 1, matHandle);
+                        }
                     }
                 }
             }
@@ -695,5 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     syncDimensionsFromGrid();
+    updateFabMethodUI();
     updateAndRender();
+    updateWizardUI();
 });
