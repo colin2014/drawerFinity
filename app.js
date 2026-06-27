@@ -106,31 +106,52 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSettings.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = settingsDropdown.style.display !== 'none';
+            if (!isOpen) {
+                const rect = btnSettings.getBoundingClientRect();
+                settingsDropdown.style.top = (rect.bottom + 8) + 'px';
+                settingsDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+                settingsDropdown.style.left = 'auto';
+            }
             settingsDropdown.style.display = isOpen ? 'none' : 'block';
         });
         document.addEventListener('click', (e) => {
-            if (!document.getElementById('settingsWrapper').contains(e.target)) {
+            if (e.target !== btnSettings && !btnSettings.contains(e.target) && !settingsDropdown.contains(e.target)) {
                 settingsDropdown.style.display = 'none';
             }
         });
     }
 
-    // Light Mode Toggle
+    // Light Mode Toggle — persisted in localStorage
     const toggleLightMode = document.getElementById('toggleLightMode');
+
+    function setLightMode(on) {
+        document.body.classList.toggle('light-mode', on);
+        if (toggleLightMode) toggleLightMode.checked = on;
+        localStorage.setItem('df_lightMode', on ? '1' : '0');
+    }
+
+    // Restore saved preference on load
+    if (localStorage.getItem('df_lightMode') === '1') setLightMode(true);
+
     if (toggleLightMode) {
-        toggleLightMode.addEventListener('change', () => {
-            document.body.classList.toggle('light-mode', toggleLightMode.checked);
-        });
+        toggleLightMode.addEventListener('change', () => setLightMode(toggleLightMode.checked));
     }
 
     // Mobile Simulator Toggle
     const toggleMobileView = document.getElementById('toggleMobileView');
+    const btnExitMobileSim = document.getElementById('btnExitMobileSim');
+
+    function setMobileSim(on) {
+        document.body.classList.toggle('mobile-sim', on);
+        if (toggleMobileView) toggleMobileView.checked = on;
+        setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+    }
+
     if (toggleMobileView) {
-        toggleMobileView.addEventListener('change', () => {
-            document.body.classList.toggle('mobile-sim', toggleMobileView.checked);
-            // Trigger a Three.js resize after the layout shifts
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
-        });
+        toggleMobileView.addEventListener('change', () => setMobileSim(toggleMobileView.checked));
+    }
+    if (btnExitMobileSim) {
+        btnExitMobileSim.addEventListener('click', () => setMobileSim(false));
     }
 
     // Collapsible Accordion Sections

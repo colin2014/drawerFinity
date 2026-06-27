@@ -150,13 +150,11 @@ body.light-mode #btnSettings svg { stroke: #7a5c3e; }
 }
 
 .settings-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
+    position: fixed;
     width: 260px;
     padding: 16px;
     border-radius: 14px;
-    z-index: 1000;
+    z-index: 9999;
     box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     animation: dropIn 0.18s ease;
 }
@@ -231,10 +229,12 @@ body.mobile-sim {
     background: #111 !important;
     background-image: none !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    overflow: hidden;
+    gap: 16px;
+    overflow: auto;
 }
 
 body.mobile-sim .app-container {
@@ -244,11 +244,130 @@ body.mobile-sim .app-container {
     max-height: 844px;
     border-radius: 48px;
     overflow: hidden;
-    border: 8px solid #222;
-    box-shadow: 0 0 0 2px #444, 0 30px 80px rgba(0,0,0,0.8), inset 0 0 0 1px #333;
+    border: 8px solid #333;
+    box-shadow: 0 0 0 2px #555, 0 30px 80px rgba(0,0,0,0.8), inset 0 0 0 1px #444;
     padding: 0;
     gap: 0;
+    flex-shrink: 0;
 }
+
+/* Exit button shown outside the phone frame when mobile-sim is active */
+#btnExitMobileSim {
+    display: none;
+}
+body.mobile-sim #btnExitMobileSim {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 20px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
+}
+body.mobile-sim #btnExitMobileSim:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+/* ========================
+   WIZARD BANNER CLASSES
+   ======================== */
+.wizard-banner {
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(168,85,247,0.15));
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+.wizard-step-title {
+    font-weight: 700;
+    color: #60a5fa;
+    font-size: 0.95rem;
+}
+.wizard-step-count {
+    font-size: 0.8rem;
+    background: rgba(59,130,246,0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: #93c5fd;
+}
+.wizard-step-desc {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+/* Fab method labels */
+.fab-label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 0.85rem;
+}
+.fab-label-drawer { color: #38bdf8; }
+.fab-label-cabinet { color: #a855f7; margin-top: 10px; }
+
+.fab-method-group {
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 16px;
+}
+
+/* Section sub-labels */
+.section-sublabel {
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.75;
+}
+
+/* 3D canvas background — transparent by default so glass-panel bg shows through */
+#canvas3d {
+    background: transparent;
+}
+
+/* Light mode overrides for wizard classes */
+body.light-mode .wizard-banner {
+    background: linear-gradient(135deg, rgba(176,92,16,0.1), rgba(139,69,19,0.08));
+    border-color: rgba(176,92,16,0.35);
+}
+body.light-mode .wizard-step-title { color: #8b4513; }
+body.light-mode .wizard-step-count {
+    background: rgba(176,92,16,0.15);
+    color: #7a3b0a;
+}
+body.light-mode .fab-label-drawer { color: #1e6fa8; }
+body.light-mode .fab-label-cabinet { color: #7c3aed; }
+body.light-mode .fab-method-group {
+    background: rgba(180,120,50,0.06);
+    border-color: rgba(139,90,43,0.2);
+}
+
+/* 3D canvas warm background in light mode */
+body.light-mode #canvas3d {
+    background: #f0ebe0;
+}
+
+/* Stat badges in light mode — ensure good contrast */
+body.light-mode .stat-value { color: #2c1a0e; }
+body.light-mode .stat-label { color: #7a5c3e; }
+
+/* Dimension badges in light mode */
+body.light-mode .badge-w { border-color: #1e6fa8; color: #1e6fa8; }
+body.light-mode .badge-d { border-color: #1d4ed8; color: #1d4ed8; }
+body.light-mode .badge-h { border-color: #0d6e5c; color: #0d6e5c; }
 
 
 * {

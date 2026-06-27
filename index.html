@@ -50,30 +50,9 @@
                     <span>Download Production Files (ZIP)</span>
                 </button>
                 <!-- Settings Gear -->
-                <div class="settings-wrapper" id="settingsWrapper">
-                    <button class="btn btn-ghost btn-sm" id="btnSettings" title="Settings" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    </button>
-                    <!-- Settings Dropdown Panel -->
-                    <div class="settings-dropdown glass-panel" id="settingsDropdown" style="display: none;">
-                        <div class="settings-section">
-                            <span class="settings-label">🎨 Appearance</span>
-                            <label class="settings-toggle-row" for="toggleLightMode">
-                                <span>Light Mode</span>
-                                <input type="checkbox" id="toggleLightMode" role="switch">
-                            </label>
-                        </div>
-                        <div class="settings-divider"></div>
-                        <div class="settings-section">
-                            <span class="settings-label">📱 Developer Preview</span>
-                            <label class="settings-toggle-row" for="toggleMobileView">
-                                <span>Simulate Phone Screen</span>
-                                <input type="checkbox" id="toggleMobileView" role="switch">
-                            </label>
-                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">Previews the mobile layout in a 390px wide frame on desktop.</p>
-                        </div>
-                    </div>
-                </div>
+                <button class="btn btn-ghost btn-sm" id="btnSettings" title="Settings" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
             </div>
         </header>
 
@@ -92,12 +71,12 @@
                 </div>
 
                 <!-- Step Banner (Visible only in Wizard Mode) -->
-                <div id="wizardBanner" style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(168,85,247,0.15)); border: 1px solid rgba(59,130,246,0.3); padding: 12px; border-radius: 10px; margin-bottom: 16px;">
+                <div id="wizardBanner" class="wizard-banner">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span id="wizardStepTitle" style="font-weight: 700; color: #60a5fa; font-size: 0.95rem;">Step 1: Footprint & Dimensions</span>
-                        <span id="wizardStepCount" style="font-size: 0.8rem; background: rgba(59,130,246,0.2); padding: 2px 8px; border-radius: 12px; color: #93c5fd;">1 of 4</span>
+                        <span id="wizardStepTitle" class="wizard-step-title">Step 1: Footprint & Dimensions</span>
+                        <span id="wizardStepCount" class="wizard-step-count">1 of 4</span>
                     </div>
-                    <p id="wizardStepDesc" style="font-size: 0.85rem; color: #cbd5e1; margin: 0; line-height: 1.4;">How many Gridfinity units wide and deep should your storage box occupy on your workbench?</p>
+                    <p id="wizardStepDesc" class="wizard-step-desc">How many Gridfinity units wide and deep should your storage box occupy on your workbench?</p>
                 </div>
 
                 <!-- Mode Toggle -->
@@ -106,20 +85,20 @@
                         <h2>1. Manufacturing Method & Sizing</h2>
                     </div>
                     
-                    <div class="form-group mb-3" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 16px;">
-                        <label style="font-weight: 700; color: #38bdf8; margin-bottom: 6px; display: block; font-size: 0.85rem;">Drawer Bins Method</label>
+                    <div class="form-group mb-3 fab-method-group">
+                        <label class="fab-label fab-label-drawer">Drawer Bins Method</label>
                         <div class="tabs-segmented mb-2" id="drFabTabs">
                             <button class="tab-btn" data-fab="laser">⚡ Laser Cut</button>
                             <button class="tab-btn active" data-fab="3dprint">🖨️ 3D Printed</button>
                         </div>
-                        <label style="font-weight: 700; color: #a855f7; margin-bottom: 6px; display: block; font-size: 0.85rem; margin-top: 10px;">Outer Cabinet Method</label>
+                        <label class="fab-label fab-label-cabinet">Outer Cabinet Method</label>
                         <div class="tabs-segmented" id="cabFabTabs">
                             <button class="tab-btn" data-fab="laser">⚡ Laser Cut</button>
                             <button class="tab-btn active" data-fab="3dprint">🖨️ 3D Printed</button>
                         </div>
                     </div>
 
-                    <label style="font-weight: 700; color: #cbd5e1; margin-bottom: 6px; display: block; font-size: 0.85rem;">Measurement Unit</label>
+                    <label class="section-sublabel">Measurement Unit</label>
                     <div class="tabs-segmented">
                         <button class="tab-btn active" data-mode="grid">Gridfinity Units</button>
                         <button class="tab-btn" data-mode="mm">Exact Millimeters</button>
@@ -374,6 +353,31 @@
             </section>
         </main>
     </div>
+
+    <!-- Settings Dropdown Panel (body-level to avoid stacking context clipping) -->
+    <div class="settings-dropdown glass-panel" id="settingsDropdown" style="display: none;">
+        <div class="settings-section">
+            <span class="settings-label">🎨 Appearance</span>
+            <label class="settings-toggle-row" for="toggleLightMode">
+                <span>Light Mode</span>
+                <input type="checkbox" id="toggleLightMode" role="switch">
+            </label>
+        </div>
+        <div class="settings-divider"></div>
+        <div class="settings-section">
+            <span class="settings-label">📱 Developer Preview</span>
+            <label class="settings-toggle-row" for="toggleMobileView">
+                <span>Simulate Phone Screen</span>
+                <input type="checkbox" id="toggleMobileView" role="switch">
+            </label>
+            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">Previews the mobile layout in a 390px wide frame on desktop.</p>
+        </div>
+    </div>
+
+    <!-- Exit Mobile Sim button (visible only when mobile-sim is active, sits below the phone frame) -->
+    <button id="btnExitMobileSim">
+        ✕ Exit Mobile View
+    </button>
 
     <!-- Three.js, OrbitControls, STLExporter & JSZip Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
