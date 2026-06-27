@@ -273,15 +273,39 @@
                     </div>
                 </div>
 
+                <!-- Step 5: Summary & Export -->
+                <div class="control-section collapsed" id="secStep5">
+                    <div class="section-header">
+                        <h2>5. Preview & Export</h2>
+                    </div>
+                    <div style="padding: 10px 0;">
+                        <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 16px; line-height: 1.5;">
+                            Your modular storage unit is fully configured! Inspect the 3D model or 2D cut sheet in the preview stage.
+                        </p>
+                        <button class="btn btn-primary glow" id="btnStep5Download" style="width: 100%; justify-content: center; padding: 14px; font-size: 1rem; background: linear-gradient(135deg, #3b82f6, #10b981); color: #fff; border: none; font-weight: 700; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                            📦 Download Production Files (ZIP)
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Wizard Navigation Buttons (Visible only in Wizard Mode) -->
-                <div id="wizardNav" style="display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <button class="btn btn-outline" id="btnWizardPrev" style="flex: 1; display: none; padding: 10px; font-weight: 600;">⬅️ Back</button>
-                    <button class="btn btn-primary glow" id="btnWizardNext" style="flex: 2; padding: 10px; font-weight: 600;">Next Step ➡️</button>
+                <div id="wizardNavContainer" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button class="btn btn-secondary glow mobile-only-btn" id="btnMobileQuickPreview" style="display: none; width: 100%; margin-bottom: 12px; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; border: none; font-weight: 600; padding: 12px;">
+                        👁️ Jump to 3D Preview Step
+                    </button>
+                    <div id="wizardNav" style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline" id="btnWizardPrev" style="flex: 1; display: none; padding: 10px; font-weight: 600;">⬅️ Back</button>
+                        <button class="btn btn-primary glow" id="btnWizardNext" style="flex: 2; padding: 10px; font-weight: 600;">Next Step ➡️</button>
+                    </div>
                 </div>
             </aside>
 
             <!-- Right Visualizer & Preview Area -->
             <section class="preview-stage glass-panel">
+                <div class="mobile-preview-header" id="mobilePreviewHeader" style="display: none; padding: 12px 16px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); justify-content: space-between; align-items: center;">
+                    <button class="btn btn-outline btn-sm" id="btnMobileBackToSteps" style="font-weight: 600; padding: 8px 14px;">⬅️ Back to Steps</button>
+                    <span style="font-weight: 700; font-size: 0.9rem; color: #38bdf8;">Step 5: Interactive Preview</span>
+                </div>
                 <div class="stage-toolbar">
                     <div class="stage-tabs">
                         <button class="stage-tab active" data-view="3d">

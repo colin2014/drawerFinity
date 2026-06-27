@@ -89,7 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
         secStep1: document.getElementById('secStep1'),
         secStep2: document.getElementById('secStep2'),
         secStep3: document.getElementById('secStep3'),
-        secStep4: document.getElementById('secStep4')
+        secStep4: document.getElementById('secStep4'),
+        secStep5: document.getElementById('secStep5'),
+        btnStep5Download: document.getElementById('btnStep5Download'),
+        btnMobileQuickPreview: document.getElementById('btnMobileQuickPreview'),
+        mobilePreviewHeader: document.getElementById('mobilePreviewHeader'),
+        btnMobileBackToSteps: document.getElementById('btnMobileBackToSteps')
     };
 
     // --- 1. EVENT LISTENERS ---
@@ -108,10 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnModeAdvanced.style.background = !state.wizardMode ? 'var(--primary)' : 'transparent';
         dom.btnModeAdvanced.style.color = !state.wizardMode ? '#fff' : '#aaa';
 
+        const mainWorkspace = document.querySelector('.main-workspace');
+        if (state.wizardStep === 5) {
+            if (mainWorkspace) mainWorkspace.classList.add('mobile-show-preview');
+        } else {
+            if (mainWorkspace) mainWorkspace.classList.remove('mobile-show-preview');
+        }
+
         if (!state.wizardMode) {
             if (dom.wizardBanner) dom.wizardBanner.style.display = 'none';
             if (dom.wizardNav) dom.wizardNav.style.display = 'none';
-            [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4].forEach(sec => {
+            if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.style.display = 'none';
+            [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4, dom.secStep5].forEach(sec => {
                 if (sec) sec.style.display = 'block';
             });
             return;
@@ -119,17 +132,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dom.wizardBanner) dom.wizardBanner.style.display = 'block';
         if (dom.wizardNav) dom.wizardNav.style.display = 'flex';
-        [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4].forEach(sec => {
+        if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.style.display = state.wizardStep < 5 ? 'block' : 'none';
+
+        [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4, dom.secStep5].forEach(sec => {
             if (sec) sec.style.display = 'none';
         });
 
-        const activeSec = [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4][state.wizardStep - 1];
+        const activeSec = [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4, dom.secStep5][state.wizardStep - 1];
         if (activeSec) {
             activeSec.style.display = 'block';
             activeSec.classList.remove('collapsed');
         }
 
-        if (dom.wizardStepCount) dom.wizardStepCount.textContent = `${state.wizardStep} of 4`;
+        if (dom.wizardStepCount) dom.wizardStepCount.textContent = `${state.wizardStep} of 5`;
         if (dom.btnWizardPrev) dom.btnWizardPrev.style.display = state.wizardStep > 1 ? 'block' : 'none';
 
         if (state.wizardStep === 1) {
@@ -143,10 +158,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (state.wizardStep === 3) {
             if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 3: Materials & Joints";
             if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Select the material thickness you plan to use for laser cutting or your 3D printer shell specifications.";
-            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Handles & Export ➡️"; }
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Handles & Hardware ➡️"; }
         } else if (state.wizardStep === 4) {
-            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 4: Pull Handle & Export";
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 4: Pull Handle & Hardware";
             if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Choose how you want to pull open your drawer. For 3D printing, snap-fit alignment pegs automatically match your selection!";
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Interactive Preview ➡️"; }
+        } else if (state.wizardStep === 5) {
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 5: Preview & Production Files";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Inspect your modular drawer unit in 3D or 2D cut sheet mode. Ready to manufacture when you are!";
             if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'none'; }
         }
     }
@@ -155,12 +174,28 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnModeWizard.addEventListener('click', () => { state.wizardMode = true; updateWizardUI(); });
         dom.btnModeAdvanced.addEventListener('click', () => { state.wizardMode = false; updateWizardUI(); });
         if (dom.btnWizardPrev) dom.btnWizardPrev.addEventListener('click', () => { if (state.wizardStep > 1) { state.wizardStep--; updateWizardUI(); } });
-        if (dom.btnWizardNext) dom.btnWizardNext.addEventListener('click', () => { if (state.wizardStep < 4) { state.wizardStep++; updateWizardUI(); } });
+        if (dom.btnWizardNext) dom.btnWizardNext.addEventListener('click', () => { if (state.wizardStep < 5) { state.wizardStep++; updateWizardUI(); } });
+        if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.addEventListener('click', () => { state.wizardStep = 5; updateWizardUI(); });
+        if (dom.btnMobileBackToSteps) dom.btnMobileBackToSteps.addEventListener('click', () => { state.wizardStep = 4; updateWizardUI(); });
+        if (dom.btnStep5Download) dom.btnStep5Download.addEventListener('click', () => { if (dom.btnDownloadAll) dom.btnDownloadAll.click(); });
     }
 
     function updateFabMethodUI() {
         if (dom.btnDownloadAll) {
-            dom.btnDownloadAll.style.opacity = '1';
+            const span = dom.btnDownloadAll.querySelector('span');
+            const only3D = state.drFabMethod === '3dprint' && (!state.genCabinet || state.cabFabMethod === '3dprint');
+            const onlyLaser = state.drFabMethod === 'laser' && (!state.genCabinet || state.cabFabMethod === 'laser');
+
+            if (only3D) {
+                if (span) span.textContent = 'Download 3D Print STLs (ZIP)';
+                dom.btnDownloadAll.style.background = 'linear-gradient(135deg, #a855f7, #10b981)';
+            } else if (onlyLaser) {
+                if (span) span.textContent = 'Download Laser Cut SVGs (ZIP)';
+                dom.btnDownloadAll.style.background = 'linear-gradient(135deg, #06b6d4, #3b82f6)';
+            } else {
+                if (span) span.textContent = 'Download Hybrid STLs & SVGs (ZIP)';
+                dom.btnDownloadAll.style.background = 'linear-gradient(135deg, #3b82f6, #10b981)';
+            }
         }
     }
 
@@ -245,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dom.genCabinet.addEventListener('change', (e) => {
         state.genCabinet = e.target.checked;
+        updateFabMethodUI();
         updateAndRender();
     });
 
@@ -471,7 +507,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         zip.generateAsync({ type: "blob" }).then(blob => {
-            const fileName = `Drawfinity_Production_Files_${state.gridX}x${state.gridY}.zip`;
+            const only3D = state.drFabMethod === '3dprint' && (!state.genCabinet || state.cabFabMethod === '3dprint');
+            const onlyLaser = state.drFabMethod === 'laser' && (!state.genCabinet || state.cabFabMethod === 'laser');
+            const typeTag = only3D ? '3D_STLs' : onlyLaser ? 'Laser_SVGs' : 'Hybrid_STLs_and_SVGs';
+            const fileName = `Drawfinity_${typeTag}_${state.gridX}x${state.gridY}.zip`;
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
