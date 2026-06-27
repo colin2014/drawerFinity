@@ -163,10 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateWizardUI() {
         if (!dom.btnModeWizard) return;
-        dom.btnModeWizard.style.background = state.wizardMode ? 'var(--primary)' : 'transparent';
-        dom.btnModeWizard.style.color = state.wizardMode ? '#fff' : '#aaa';
-        dom.btnModeAdvanced.style.background = !state.wizardMode ? 'var(--primary)' : 'transparent';
-        dom.btnModeAdvanced.style.color = !state.wizardMode ? '#fff' : '#aaa';
+        dom.btnModeWizard.classList.toggle('active', state.wizardMode);
+        dom.btnModeAdvanced.classList.toggle('active', !state.wizardMode);
+        dom.btnModeWizard.style.background = '';
+        dom.btnModeWizard.style.color = '';
+        dom.btnModeAdvanced.style.background = '';
+        dom.btnModeAdvanced.style.color = '';
 
         if (!state.wizardMode) {
             if (dom.wizardBanner) dom.wizardBanner.style.display = 'none';
@@ -657,23 +659,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function render2DPanels() {
         dom.panelsGrid.innerHTML = '';
 
+        const isLight = document.body.classList.contains('light-mode');
+
         generatedParts.forEach(part => {
             const card = document.createElement('div');
             card.className = 'panel-card';
-            
-            const typeBadge = part.type === 'drawer' ? '#00e5ff' : part.type === 'cabinet' ? '#3b82f6' : '#14b8a6';
+
+            // Theme-aware colours
+            let stroke, fillOpacity;
+            if (isLight) {
+                stroke = part.type === 'drawer' ? '#1e6fa8' : part.type === 'cabinet' ? '#1d4ed8' : '#0d6e5c';
+                fillOpacity = 'rgba(30, 111, 168, 0.07)';
+            } else {
+                stroke = part.type === 'drawer' ? '#00e5ff' : part.type === 'cabinet' ? '#3b82f6' : '#14b8a6';
+                fillOpacity = 'rgba(0, 229, 255, 0.08)';
+            }
 
             card.innerHTML = `
                 <div class="panel-card-header">
                     <span class="panel-title">${part.name}</span>
-                    <span class="panel-dim" style="border-color: ${typeBadge}">${Math.round(part.width)} × ${Math.round(part.height)} mm ${part.count > 1 ? `| Qty: ${part.count}` : ''}</span>
+                    <span class="panel-dim" style="border-color: ${stroke}">${Math.round(part.width)} × ${Math.round(part.height)} mm ${part.count > 1 ? `| Qty: ${part.count}` : ''}</span>
                 </div>
                 <div class="panel-preview">
                     <svg viewBox="-5 -5 ${part.width + 10} ${part.height + 10}">
-                        <path d="${part.path}" fill="rgba(0, 229, 255, 0.08)" stroke="${typeBadge}" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="${part.path}" fill="${fillOpacity}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                ${part.notes ? `<span class="help-text" style="color:#94a3b8">${part.notes}</span>` : ''}
+                ${part.notes ? `<span class="help-text" style="color:var(--text-muted)">${part.notes}</span>` : ''}
                 <div class="dl-overlay">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     <span>Download Standalone SVG</span>
