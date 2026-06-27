@@ -459,13 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const polyOffset = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
         const matWood = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7, wireframe: state.wireframe, ...polyOffset });
         const matWoodEdge = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5, wireframe: state.wireframe, ...polyOffset });
+        const matWoodJoint = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.6, wireframe: state.wireframe, ...polyOffset });
         const matDrawer = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6, wireframe: state.wireframe, ...polyOffset });
         const matDrawerSide = new THREE.MeshStandardMaterial({ color: 0x164e63, roughness: 0.5, wireframe: state.wireframe, ...polyOffset });
+        const matDrawerJoint = new THREE.MeshStandardMaterial({ color: 0x0891b2, roughness: 0.4, wireframe: state.wireframe, ...polyOffset });
         const matDrawerFront = new THREE.MeshStandardMaterial({ color: 0x00e5ff, roughness: 0.3, metalness: 0.1, wireframe: state.wireframe, ...polyOffset });
         const matHandle = new THREE.MeshStandardMaterial({ color: 0xff2a2a, roughness: 0.2, wireframe: state.wireframe, ...polyOffset });
 
         function addBox(w, h, d, x, y, z, mat, isDrawer = false) {
-            const geo = new THREE.BoxGeometry(w, h, d);
+            const geo = new THREE.BoxGeometry(Math.max(0.1, w - 0.04), Math.max(0.1, h - 0.04), Math.max(0.1, d - 0.04));
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x + w/2, y + h/2, z + d/2);
             
@@ -480,35 +482,84 @@ document.addEventListener('DOMContentLoaded', () => {
             return mesh;
         }
 
+        function addFingerSeam(x, y, z, len, axis, thickness, tabSize, matA, matB, group = null, isDrawer = false) {
+            if (len <= 0) return;
+            let numTabs = Math.max(3, 1 + 2 * Math.round((len / tabSize - 1) / 2));
+            if (numTabs % 2 === 0) numTabs++;
+            const tabLen = len / numTabs;
+
+            for (let i = 0; i < numTabs; i++) {
+                const mat = (i % 2 === 0) ? matA : matB;
+                const offset = (i % 2 === 0) ? 0.04 : -0.04;
+                let bw = thickness + offset, bh = thickness + offset, bd = thickness + offset;
+                let bx = x, by = y, bz = z;
+
+                if (axis === 'x') { bw = Math.max(0.1, tabLen - 0.04); bx = x + i * tabLen + 0.02; }
+                else if (axis === 'y') { bh = Math.max(0.1, tabLen - 0.04); by = y + i * tabLen + 0.02; }
+                else if (axis === 'z') { bd = Math.max(0.1, tabLen - 0.04); bz = z + i * tabLen + 0.02; }
+
+                const g = new THREE.BoxGeometry(bw, bh, bd);
+                const m = new THREE.Mesh(g, mat);
+                m.position.set(bx + bw/2, by + bh/2, bz + bd/2);
+                if (!state.wireframe) {
+                    m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g), new THREE.LineBasicMaterial({ color: isDrawer ? 0x00bfff : 0x3b82f6 })));
+                }
+
+                if (group) {
+                    group.add(m);
+                } else {
+                    scene.add(m);
+                    cabinetMeshes.push(m);
+                }
+            }
+        }
+
         // --- BUILD OUTER CABINET SHELL ---
         if (state.genCabinet) {
-            // Bottom Panel
-            addBox(cabW, th, cabD, 0, 0, 0, matWood);
-            // Top Panel
-            addBox(cabW, th, cabD, 0, cabH - th, 0, matWood);
-            // Left Side Panel
-            addBox(th, cabH - 2*th, cabD, 0, th, 0, matWoodEdge);
-            // Right Side Panel
-            addBox(th, cabH - 2*th, cabD, cabW - th, th, 0, matWoodEdge);
-            // Rear Wall Panel
-            addBox(cabW - 2*th, cabH - 2*th, th, th, th, 0, matWood);
+            // 1. Central Face Plates (leaving corner seams open)
+            addBox(cabW - 2*th, th, cabD - th, th, 0, th, matWood); // Bottom
+            addBox(cabW - 2*th, th, cabD - th, th, cabH - th, th, matWood); // Top
+            addBox(th, cabH - 2*th, cabD - th, 0, th, th, matWoodEdge); // Left Side
+            addBox(th, cabH - 2*th, cabD - th, cabW - th, th, th, matWoodEdge); // Right Side
+            addBox(cabW - 2*th, cabH - 2*th, th, th, th, 0, matWood); // Rear Wall
+
+            // 2. Back Corner Blocks (th x th x th)
+            addBox(th, th, th, 0, 0, 0, matWoodEdge);
+            addBox(th, th, th, cabW - th, 0, 0, matWoodEdge);
+            addBox(th, th, th, 0, cabH - th, 0, matWoodEdge);
+            addBox(th, th, th, cabW - th, cabH - th, 0, matWoodEdge);
+
+            // 3. Interlocking Finger Seams along 8 edges
+            addFingerSeam(0, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Left
+            addFingerSeam(cabW - th, cabH - th, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Top-Right
+            addFingerSeam(0, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Left
+            addFingerSeam(cabW - th, 0, th, cabD - th, 'z', th, state.tabSize, matWood, matWoodJoint); // Bottom-Right
+
+            addFingerSeam(th, cabH - th, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Top
+            addFingerSeam(th, 0, 0, cabW - 2*th, 'x', th, state.tabSize, matWood, matWoodJoint); // Back-Bottom
+            addFingerSeam(0, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Left
+            addFingerSeam(cabW - th, th, 0, cabH - 2*th, 'y', th, state.tabSize, matWoodEdge, matWoodJoint); // Back-Right
 
             // Shelf Dividers
             if (state.cabRows > 1) {
                 for (let r = 1; r < state.cabRows; r++) {
-                    const sy = r * (drH + 3) + th;
+                    const sy = r * (drH + 2.5) + th;
                     addBox(cabW - 2*th, th, cabD - th, th, sy, th, matWoodEdge);
+                    // Shelf finger mortises into left/right walls
+                    addFingerSeam(0, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
+                    addFingerSeam(cabW - th, sy, th, cabD - th, 'z', th, state.tabSize, matWoodEdge, matWoodJoint);
                 }
             }
         }
 
         // --- BUILD DRAWERS ---
+        const dth = state.drThickness;
         const slideZ = state.exploded ? Math.min(100, drD * 0.7) : 4; // slide forward
 
         for (let r = 0; r < state.cabRows; r++) {
             for (let c = 0; c < state.cabCols; c++) {
-                const ox = state.genCabinet ? th + c * (drW + 3) + 1.5 : c * drW;
-                const oy = state.genCabinet ? th + r * (drH + 3) + 1.5 : r * drH;
+                const ox = state.genCabinet ? th + c * (drW + 2.5) + 1.25 : c * drW;
+                const oy = state.genCabinet ? th + r * (drH + 2.5) + 1.25 : r * drH;
                 const oz = state.genCabinet ? th + slideZ : slideZ;
 
                 const drGroup = new THREE.Group();
@@ -527,16 +578,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     return m;
                 }
 
-                // Drawer Bottom (ends right before front face)
-                addDrPart(drW, th, drD - th, 0, 0, 0, matDrawer);
-                // Drawer Left Side (ends right before front face)
-                addDrPart(th, drH - th, drD - th, 0, th, 0, matDrawerSide);
-                // Drawer Right Side (ends right before front face)
-                addDrPart(th, drH - th, drD - th, drW - th, th, 0, matDrawerSide);
-                // Drawer Rear Wall
-                addDrPart(drW - 2*th, drH - th, th, th, th, 0, matDrawerSide);
-                // Drawer Front Face (Glowing Vibrant Cyan!)
-                addDrPart(drW, drH, th, 0, 0, drD - th, matDrawerFront);
+                // 1. Central Face Plates
+                addDrPart(drW - 2*dth, dth, drD - 2*dth, dth, 0, dth, matDrawer); // Bottom
+                addDrPart(dth, drH - dth, drD - 2*dth, 0, dth, dth, matDrawerSide); // Left Side
+                addDrPart(dth, drH - dth, drD - 2*dth, drW - dth, dth, dth, matDrawerSide); // Right Side
+                addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, 0, matDrawerSide); // Rear Wall
+                addDrPart(drW - 2*dth, drH - dth, dth, dth, dth, drD - dth, matDrawerFront); // Front Face
+
+                // 2. Corner Blocks (dth x dth x dth)
+                addDrPart(dth, dth, dth, 0, 0, 0, matDrawerSide);
+                addDrPart(dth, dth, dth, drW - dth, 0, 0, matDrawerSide);
+                addDrPart(dth, dth, dth, 0, 0, drD - dth, matDrawerFront);
+                addDrPart(dth, dth, dth, drW - dth, 0, drD - dth, matDrawerFront);
+
+                // 3. Interlocking Finger Seams
+                addFingerSeam(0, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Left
+                addFingerSeam(drW - dth, 0, dth, drD - 2*dth, 'z', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Bottom-Right
+                addFingerSeam(dth, 0, 0, drW - 2*dth, 'x', dth, state.tabSize, matDrawer, matDrawerJoint, drGroup, true); // Back-Bottom
+                addFingerSeam(dth, 0, drD - dth, drW - 2*dth, 'x', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Bottom
+
+                addFingerSeam(0, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Left
+                addFingerSeam(drW - dth, dth, 0, drH - dth, 'y', dth, state.tabSize, matDrawerSide, matDrawerJoint, drGroup, true); // Back-Right
+                addFingerSeam(0, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Left
+                addFingerSeam(drW - dth, dth, drD - dth, drH - dth, 'y', dth, state.tabSize, matDrawerFront, matDrawerJoint, drGroup, true); // Front-Right
 
                 // Handle Cutout Prongs indicators
                 if (state.handleStyle.startsWith('rects')) {
@@ -548,10 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const hy = Math.max(10, Math.min(26, (drH - rh) / 2));
                     if (space === 0) {
-                        addDrPart(rw, rh, th + 2, (drW-rw)/2, hy, drD - th - 1, matHandle);
+                        addDrPart(rw, rh, dth + 2, (drW-rw)/2, hy, drD - dth - 1, matHandle);
                     } else {
-                        addDrPart(rw, rh, th + 2, drW/2 - space/2 - rw/2, hy, drD - th - 1, matHandle);
-                        addDrPart(rw, rh, th + 2, drW/2 + space/2 - rw/2, hy, drD - th - 1, matHandle);
+                        addDrPart(rw, rh, dth + 2, drW/2 - space/2 - rw/2, hy, drD - dth - 1, matHandle);
+                        addDrPart(rw, rh, dth + 2, drW/2 + space/2 - rw/2, hy, drD - dth - 1, matHandle);
                     }
                 }
             }
