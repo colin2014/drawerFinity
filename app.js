@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         cabCols: 1,
         cabRows: 2,
         genCabinet: true,
-        thickness: 3.0,
+        drThickness: 3.0,
+        cabThickness: 6.0,
         tabSize: 15,
         kerf: 0.12,
         handleStyle: 'rects64',
@@ -46,9 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cabCols: document.getElementById('cabCols'),
         cabRows: document.getElementById('cabRows'),
         genCabinet: document.getElementById('genCabinet'),
-        matThickness: document.getElementById('matThickness'),
-        customThickGroup: document.getElementById('customThickGroup'),
-        customThick: document.getElementById('customThick'),
+        drThickness: document.getElementById('drThickness'),
+        customDrThickGroup: document.getElementById('customDrThickGroup'),
+        customDrThick: document.getElementById('customDrThick'),
+        cabThickness: document.getElementById('cabThickness'),
+        customCabThickGroup: document.getElementById('customCabThickGroup'),
+        customCabThick: document.getElementById('customCabThick'),
         tabSize: document.getElementById('tabSize'),
         valTabSize: document.getElementById('valTabSize'),
         kerf: document.getElementById('kerf'),
@@ -62,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dimD: document.getElementById('dimD'),
         dimH: document.getElementById('dimH'),
         panelsGrid: document.getElementById('panelsGrid'),
+        stageControls: document.getElementById('stageControls'),
         btnWireframe: document.getElementById('btnWireframe'),
         btnExplode: document.getElementById('btnExplode'),
         btnResetCamera: document.getElementById('btnResetCamera'),
@@ -137,19 +142,35 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAndRender();
     });
 
-    dom.matThickness.addEventListener('change', (e) => {
+    dom.drThickness.addEventListener('change', (e) => {
         if (e.target.value === 'custom') {
-            dom.customThickGroup.classList.remove('hidden');
-            state.thickness = parseFloat(dom.customThick.value) || 3.0;
+            dom.customDrThickGroup.classList.remove('hidden');
+            state.drThickness = parseFloat(dom.customDrThick.value) || 3.0;
         } else {
-            dom.customThickGroup.classList.add('hidden');
-            state.thickness = parseFloat(e.target.value);
+            dom.customDrThickGroup.classList.add('hidden');
+            state.drThickness = parseFloat(e.target.value);
         }
         updateAndRender();
     });
 
-    dom.customThick.addEventListener('input', (e) => {
-        state.thickness = parseFloat(e.target.value) || 3.0;
+    dom.customDrThick.addEventListener('input', (e) => {
+        state.drThickness = parseFloat(e.target.value) || 3.0;
+        updateAndRender();
+    });
+
+    dom.cabThickness.addEventListener('change', (e) => {
+        if (e.target.value === 'custom') {
+            dom.customCabThickGroup.classList.remove('hidden');
+            state.cabThickness = parseFloat(dom.customCabThick.value) || 6.0;
+        } else {
+            dom.customCabThickGroup.classList.add('hidden');
+            state.cabThickness = parseFloat(e.target.value);
+        }
+        updateAndRender();
+    });
+
+    dom.customCabThick.addEventListener('input', (e) => {
+        state.cabThickness = parseFloat(e.target.value) || 6.0;
         updateAndRender();
     });
 
@@ -180,9 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (view === '3d') {
                 dom.view3d.classList.add('active');
                 dom.view2d.classList.remove('active');
+                if (dom.stageControls) dom.stageControls.style.display = 'flex';
             } else {
                 dom.view3d.classList.remove('active');
                 dom.view2d.classList.add('active');
+                if (dom.stageControls) dom.stageControls.style.display = 'none';
             }
         });
     });
@@ -210,8 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const zip = new JSZip();
-        const cabFolder = zip.folder("cabinet");
-        const drFolder = zip.folder("drawers");
+        const cabFolder = zip.folder(`cabinet_${state.cabThickness}mm`);
+        const drFolder = zip.folder(`drawers_${state.drThickness}mm`);
 
         // Master Cut Sheet in root
         const masterSvg = BoxGenerator.generateMasterCutSheet(generatedParts);
@@ -233,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnDownloadAll.disabled = true;
 
         zip.generateAsync({ type: "blob" }).then(blob => {
-            const fileName = `Drawfinity_Laser_Cut_Files.zip`;
+            const fileName = `Drawfinity_CutFiles_Cab-${state.cabThickness}mm_Dr-${state.drThickness}mm.zip`;
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -294,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
             clearanceH: state.mmHeight,
             cabCols: state.cabCols,
             cabRows: state.cabRows,
-            thickness: state.thickness,
+            drThickness: state.drThickness,
+            cabThickness: state.cabThickness,
             tabSize: state.tabSize,
             kerf: state.kerf,
             handleStyle: state.handleStyle,
@@ -308,14 +332,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.statHeight.textContent = `${state.gridZ}U (${state.gridZ * 7}mm)`;
 
         // Estimate Outer Cabinet Size
-        const drW = state.gridX * 42 + state.thickness * 2;
-        const drD = state.gridY * 42 + state.thickness * 2;
-        const drH = state.mmHeight + state.thickness;
+        const drW = state.gridX * 42 + state.drThickness * 2;
+        const drD = state.gridY * 42 + state.drThickness * 2;
+        const drH = state.mmHeight + state.drThickness;
 
         if (state.genCabinet) {
-            const cabW = Math.round(state.cabCols * (drW + 3) + state.thickness * 2);
+            const cabW = Math.round(state.cabCols * (drW + 2.5) + state.cabThickness * 2);
             const cabD = Math.round(drD + 4);
-            const cabH = Math.round(state.cabRows * (drH + 3) + state.thickness * 2);
+            const cabH = Math.round(state.cabRows * (drH + 2.5) + state.cabThickness * 2);
             dom.statCabSize.textContent = `${cabW} × ${cabD} × ${cabH} mm`;
         } else {
             dom.statCabSize.textContent = `${Math.round(drW)} × ${Math.round(drD)} × ${Math.round(drH)} mm`;
@@ -373,14 +397,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function render3DStage() {
         if (!dom.canvas3d) return;
 
-        const drW = state.gridX * 42 + state.thickness * 2;
-        const drD = state.gridY * 42 + state.thickness * 2;
-        const drH = state.mmHeight + state.thickness;
-        const th = state.thickness;
+        const drW = state.gridX * 42 + state.drThickness * 2;
+        const drD = state.gridY * 42 + state.drThickness * 2;
+        const drH = state.mmHeight + state.drThickness;
+        const th = state.cabThickness;
 
-        const cabW = state.genCabinet ? state.cabCols * (drW + 3) + state.thickness * 2 : drW;
+        const cabW = state.genCabinet ? state.cabCols * (drW + 2.5) + state.cabThickness * 2 : drW;
         const cabD = state.genCabinet ? drD + 4 : drD;
-        const cabH = state.genCabinet ? state.cabRows * (drH + 3) + state.thickness * 2 : drH;
+        const cabH = state.genCabinet ? state.cabRows * (drH + 2.5) + state.cabThickness * 2 : drH;
 
         // Initialize Three.js Scene once
         if (!sceneInit) {
@@ -579,12 +603,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function reset3DCamera() {
         if (!controls || !camera) return;
-        const drW = state.gridX * 42 + state.thickness * 2;
-        const drD = state.gridY * 42 + state.thickness * 2;
-        const drH = state.mmHeight + state.thickness;
-        const cabW = state.genCabinet ? state.cabCols * (drW + 3) + state.thickness * 2 : drW;
+        const drW = state.gridX * 42 + state.drThickness * 2;
+        const drD = state.gridY * 42 + state.drThickness * 2;
+        const drH = state.mmHeight + state.drThickness;
+        const cabW = state.genCabinet ? state.cabCols * (drW + 2.5) + state.cabThickness * 2 : drW;
         const cabD = state.genCabinet ? drD + 4 : drD;
-        const cabH = state.genCabinet ? state.cabRows * (drH + 3) + state.thickness * 2 : drH;
+        const cabH = state.genCabinet ? state.cabRows * (drH + 2.5) + state.cabThickness * 2 : drH;
 
         controls.target.set(cabW/2, cabH/2, cabD/2);
         camera.position.set(cabW * 1.6, cabH * 1.8, cabD * 2.4);

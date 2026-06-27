@@ -13,7 +13,8 @@ class BoxGenerator {
      */
     generateAllParts() {
         const p = this.params;
-        const th = parseFloat(p.thickness);
+        const drTh = parseFloat(p.drThickness || p.thickness || 3.0);
+        const cabTh = parseFloat(p.cabThickness || p.thickness || 6.0);
         const kerf = parseFloat(p.kerf) || 0;
         const tol = 1.25; // 1.25mm sliding clearance around each drawer
 
@@ -23,9 +24,9 @@ class BoxGenerator {
         const intH = p.clearanceH;
 
         // Drawer external bounding dimensions (for cabinet compartment calculation)
-        const drW = intW + th * 2;
-        const drD = intD + th * 2;
-        const drH = intH + th;
+        const drW = intW + drTh * 2;
+        const drD = intD + drTh * 2;
+        const drH = intH + drTh;
 
         const parts = [];
 
@@ -38,14 +39,14 @@ class BoxGenerator {
             name: 'Drawer Bottom Panel',
             code: 'DR-BOT',
             joint: 'top',
-            th: th,
+            th: drTh,
             tabSize: p.tabSize,
             tabPolarity: 1,
             type: 'drawer',
             count: totalDrawers,
             width: intW,
             height: intD,
-            path: this.createBoxPanelPath(intW, intD, th, p.tabSize, kerf, [1, 1, 1, 1]),
+            path: this.createBoxPanelPath(intW, intD, drTh, p.tabSize, kerf, [1, 1, 1, 1]),
             notes: `Quantity needed: ${totalDrawers}. Drops 3D printed baseplate inside.`
         });
 
@@ -55,14 +56,14 @@ class BoxGenerator {
             name: 'Drawer Front Face',
             code: 'DR-FRT',
             joint: 'bot',
-            th: th,
+            th: drTh,
             tabSize: p.tabSize,
             tabPolarity: -1,
             type: 'drawer',
             count: totalDrawers,
             width: intW,
             height: intH,
-            path: this.createDrawerFrontPath(intW, intH, th, p.tabSize, kerf, p.handleStyle),
+            path: this.createDrawerFrontPath(intW, intH, drTh, p.tabSize, kerf, p.handleStyle),
             notes: `Quantity needed: ${totalDrawers}. Pull style: ${p.handleStyle}`
         });
 
@@ -72,14 +73,14 @@ class BoxGenerator {
             name: 'Drawer Rear Wall',
             code: 'DR-BCK',
             joint: 'bot',
-            th: th,
+            th: drTh,
             tabSize: p.tabSize,
             tabPolarity: -1,
             type: 'drawer',
             count: totalDrawers,
             width: intW,
             height: intH,
-            path: this.createBoxPanelPath(intW, intH, th, p.tabSize, kerf, [0, 1, -1, 1]),
+            path: this.createBoxPanelPath(intW, intH, drTh, p.tabSize, kerf, [0, 1, -1, 1]),
             notes: `Quantity needed: ${totalDrawers}.`
         });
 
@@ -89,14 +90,14 @@ class BoxGenerator {
             name: 'Drawer Side Left',
             code: 'DR-SDL',
             joint: 'bot',
-            th: th,
+            th: drTh,
             tabSize: p.tabSize,
             tabPolarity: -1,
             type: 'drawer',
             count: totalDrawers,
             width: intD,
             height: intH,
-            path: this.createBoxPanelPath(intD, intH, th, p.tabSize, kerf, [0, -1, -1, -1]),
+            path: this.createBoxPanelPath(intD, intH, drTh, p.tabSize, kerf, [0, -1, -1, -1]),
             notes: `Quantity needed: ${totalDrawers}.`
         });
 
@@ -106,16 +107,46 @@ class BoxGenerator {
             name: 'Drawer Side Right',
             code: 'DR-SDR',
             joint: 'bot',
-            th: th,
+            th: drTh,
             tabSize: p.tabSize,
             tabPolarity: -1,
             type: 'drawer',
             count: totalDrawers,
             width: intD,
             height: intH,
-            path: this.createBoxPanelPath(intD, intH, th, p.tabSize, kerf, [0, -1, -1, -1]),
+            path: this.createBoxPanelPath(intD, intH, drTh, p.tabSize, kerf, [0, -1, -1, -1]),
             notes: `Quantity needed: ${totalDrawers}.`
         });
+
+        // 1F. Drawer Pull Handle Piece (when rectangular prongs style selected)
+        if (p.handleStyle === 'rects64' || p.handleStyle === 'rects32' || p.handleStyle === 'rects96') {
+            let space = p.handleStyle === 'rects32' ? 32 : p.handleStyle === 'rects96' ? 96 : 64;
+            const rw = p.handleStyle === 'rects32' ? 4 : 5;
+            const rh = p.handleStyle === 'rects32' ? 8 : 10;
+            if (intW < space + rw + 12) space = 32;
+            if (intW < space + rw + 8) space = 0;
+
+            if (space > 0) {
+                const handleTh = cabTh * 2; // double cabinet material thickness
+                const hw = space + rw + 20;
+                const hh = 28;
+                parts.push({
+                    id: 'dr_handle',
+                    name: 'Drawer Pull Handle Piece',
+                    code: 'HDL-PUL',
+                    joint: 'center',
+                    th: handleTh,
+                    tabSize: p.tabSize,
+                    tabPolarity: 1,
+                    type: 'drawer',
+                    count: totalDrawers,
+                    width: hw,
+                    height: hh,
+                    path: this.createHandlePath(hw, hh, space, rw, rh, drTh, handleTh),
+                    notes: `Quantity needed: ${totalDrawers}. Uses double cabinet thickness (${handleTh}mm).`
+                });
+            }
+        }
 
         // --- 2. GENERATE OUTER CABINET (If enabled) ---
         if (p.genCabinet) {
@@ -123,8 +154,8 @@ class BoxGenerator {
             const compH = drH + tol * 2;
             const cabDepth = drD + 4; // 4mm overhang
 
-            const totalIntW = p.cabCols * compW + (p.cabCols - 1) * th;
-            const totalIntH = p.cabRows * compH + (p.cabRows - 1) * th;
+            const totalIntW = p.cabCols * compW + (p.cabCols - 1) * cabTh;
+            const totalIntH = p.cabRows * compH + (p.cabRows - 1) * cabTh;
 
             const cabW = totalIntW;
             const cabH = totalIntH;
@@ -135,28 +166,28 @@ class BoxGenerator {
                 name: 'Cabinet Outer Top',
                 code: 'CAB-TOP',
                 joint: 'top',
-                th: th,
+                th: cabTh,
                 tabSize: p.tabSize,
                 tabPolarity: 1,
                 type: 'cabinet',
                 count: 1,
                 width: cabW,
                 height: cabDepth,
-                path: this.createBoxPanelPath(cabW, cabDepth, th, p.tabSize, kerf, [1, 1, 0, 1])
+                path: this.createBoxPanelPath(cabW, cabDepth, cabTh, p.tabSize, kerf, [1, 1, 0, 1])
             });
             parts.push({
                 id: 'cab_bottom',
                 name: 'Cabinet Outer Bottom',
                 code: 'CAB-BOT',
                 joint: 'top',
-                th: th,
+                th: cabTh,
                 tabSize: p.tabSize,
                 tabPolarity: 1,
                 type: 'cabinet',
                 count: 1,
                 width: cabW,
                 height: cabDepth,
-                path: this.createBoxPanelPath(cabW, cabDepth, th, p.tabSize, kerf, [1, 1, 0, 1])
+                path: this.createBoxPanelPath(cabW, cabDepth, cabTh, p.tabSize, kerf, [1, 1, 0, 1])
             });
 
             // Cabinet Sides
@@ -165,28 +196,28 @@ class BoxGenerator {
                 name: 'Cabinet Outer Side Left',
                 code: 'CAB-SDL',
                 joint: 'top',
-                th: th,
+                th: cabTh,
                 tabSize: p.tabSize,
                 tabPolarity: -1,
                 type: 'cabinet',
                 count: 1,
                 width: cabDepth,
                 height: cabH,
-                path: this.createCabinetSidePath(cabDepth, cabH, th, p.tabSize, kerf, [-1, 0, -1, 1], p.cabRows, drH)
+                path: this.createCabinetSidePath(cabDepth, cabH, cabTh, p.tabSize, kerf, [-1, 0, -1, 1], p.cabRows, compH)
             });
             parts.push({
                 id: 'cab_sideR',
                 name: 'Cabinet Outer Side Right',
                 code: 'CAB-SDR',
                 joint: 'top',
-                th: th,
+                th: cabTh,
                 tabSize: p.tabSize,
                 tabPolarity: -1,
                 type: 'cabinet',
                 count: 1,
                 width: cabDepth,
                 height: cabH,
-                path: this.createCabinetSidePath(cabDepth, cabH, th, p.tabSize, kerf, [-1, 0, -1, 1], p.cabRows, drH)
+                path: this.createCabinetSidePath(cabDepth, cabH, cabTh, p.tabSize, kerf, [-1, 0, -1, 1], p.cabRows, compH)
             });
 
             // Cabinet Back
@@ -195,14 +226,14 @@ class BoxGenerator {
                 name: 'Cabinet Rear Wall',
                 code: 'CAB-BCK',
                 joint: 'top',
-                th: th,
+                th: cabTh,
                 tabSize: p.tabSize,
                 tabPolarity: -1,
                 type: 'cabinet',
                 count: 1,
                 width: cabW,
                 height: cabH,
-                path: this.createBoxPanelPath(cabW, cabH, th, p.tabSize, kerf, [-1, -1, -1, -1])
+                path: this.createBoxPanelPath(cabW, cabH, cabTh, p.tabSize, kerf, [-1, -1, -1, -1])
             });
 
             // Shelf Dividers
@@ -213,12 +244,12 @@ class BoxGenerator {
                         name: `Cabinet Shelf Divider ${sr}`,
                         code: `SHF-${sr}`,
                         joint: 'center',
-                        th: th,
+                        th: cabTh,
                         type: 'divider',
                         count: 1,
                         width: cabW,
-                        height: cabDepth - th,
-                        path: this.createBoxPanelPath(cabW, cabDepth - th, th, p.tabSize, kerf, [0, 1, 0, 1])
+                        height: cabDepth - cabTh,
+                        path: this.createBoxPanelPath(cabW, cabDepth - cabTh, cabTh, p.tabSize, kerf, [0, 1, 0, 1])
                     });
                 }
             }
@@ -235,6 +266,10 @@ class BoxGenerator {
         const th = part.th || 3;
         const w = part.width;
         const h = part.height;
+
+        if (part.id === 'dr_handle') {
+            return { tx: w / 2, ty: 5 };
+        }
 
         if (part.joint === 'center' || !part.joint) {
             return { tx: w / 2, ty: h / 2 };
@@ -341,6 +376,39 @@ class BoxGenerator {
             }
         }
 
+        return d;
+    }
+
+    /**
+     * Generates laser-cut U-shaped Pull Handle path matching drawer front holes
+     */
+    createHandlePath(w, h, space, rw, rh, drTh, handleTh) {
+        const cx1 = (w - space) / 2;
+        const cx2 = cx1 + space;
+        const gripH = h - drTh - 2;
+
+        let d = `M 0 0 `;
+        d += `L ${w} 0 `;
+        d += `L ${w} ${gripH} `;
+        d += `L ${cx2 + rw/2} ${gripH} `;
+        d += `L ${cx2 + rw/2} ${h} `;
+        d += `L ${cx2 - rw/2} ${h} `;
+        d += `L ${cx2 - rw/2} ${gripH} `;
+        d += `L ${cx1 + rw/2} ${gripH} `;
+        d += `L ${cx1 + rw/2} ${h} `;
+        d += `L ${cx1 - rw/2} ${h} `;
+        d += `L ${cx1 - rw/2} ${gripH} `;
+        d += `L 0 ${gripH} Z`;
+
+        if (space > 20 && gripH > 10) {
+            const ix1 = cx1 + rw/2 + 4;
+            const ix2 = cx2 - rw/2 - 4;
+            const iy1 = 6;
+            const iy2 = gripH - 6;
+            if (ix2 > ix1 && iy2 > iy1) {
+                d += ` M ${ix1} ${iy1} L ${ix2} ${iy1} L ${ix2} ${iy2} L ${ix1} ${iy2} Z`;
+            }
+        }
         return d;
     }
 
