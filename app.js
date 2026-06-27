@@ -113,17 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnModeAdvanced.style.background = !state.wizardMode ? 'var(--primary)' : 'transparent';
         dom.btnModeAdvanced.style.color = !state.wizardMode ? '#fff' : '#aaa';
 
-        const mainWorkspace = document.querySelector('.main-workspace');
-        if (state.wizardStep === 5) {
-            if (mainWorkspace) mainWorkspace.classList.add('mobile-show-preview');
-        } else {
-            if (mainWorkspace) mainWorkspace.classList.remove('mobile-show-preview');
-        }
-
         if (!state.wizardMode) {
             if (dom.wizardBanner) dom.wizardBanner.style.display = 'none';
             if (dom.wizardNav) dom.wizardNav.style.display = 'none';
-            if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.style.display = 'none';
             [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4, dom.secStep5].forEach(sec => {
                 if (sec) sec.style.display = 'block';
             });
@@ -132,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dom.wizardBanner) dom.wizardBanner.style.display = 'block';
         if (dom.wizardNav) dom.wizardNav.style.display = 'flex';
-        if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.style.display = state.wizardStep < 5 ? 'block' : 'none';
 
         [dom.secStep1, dom.secStep2, dom.secStep3, dom.secStep4, dom.secStep5].forEach(sec => {
             if (sec) sec.style.display = 'none';
@@ -162,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (state.wizardStep === 4) {
             if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 4: Pull Handle & Hardware";
             if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Choose how you want to pull open your drawer. For 3D printing, snap-fit alignment pegs automatically match your selection!";
-            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Interactive Preview ➡️"; }
+            if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'block'; dom.btnWizardNext.textContent = "Next: Preview & Export ➡️"; }
         } else if (state.wizardStep === 5) {
-            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 5: Preview & Production Files";
-            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Inspect your modular drawer unit in 3D or 2D cut sheet mode. Ready to manufacture when you are!";
+            if (dom.wizardStepTitle) dom.wizardStepTitle.textContent = "Step 5: Preview & Export";
+            if (dom.wizardStepDesc) dom.wizardStepDesc.textContent = "Your design is ready! Download your production files below.";
             if (dom.btnWizardNext) { dom.btnWizardNext.style.display = 'none'; }
         }
     }
@@ -175,8 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.btnModeAdvanced.addEventListener('click', () => { state.wizardMode = false; updateWizardUI(); });
         if (dom.btnWizardPrev) dom.btnWizardPrev.addEventListener('click', () => { if (state.wizardStep > 1) { state.wizardStep--; updateWizardUI(); } });
         if (dom.btnWizardNext) dom.btnWizardNext.addEventListener('click', () => { if (state.wizardStep < 5) { state.wizardStep++; updateWizardUI(); } });
-        if (dom.btnMobileQuickPreview) dom.btnMobileQuickPreview.addEventListener('click', () => { state.wizardStep = 5; updateWizardUI(); });
-        if (dom.btnMobileBackToSteps) dom.btnMobileBackToSteps.addEventListener('click', () => { state.wizardStep = 4; updateWizardUI(); });
         if (dom.btnStep5Download) dom.btnStep5Download.addEventListener('click', () => { if (dom.btnDownloadAll) dom.btnDownloadAll.click(); });
     }
 

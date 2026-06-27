@@ -803,83 +803,101 @@ input[type=range]::-webkit-slider-thumb:hover {
     fill: none;
 }
 
-/* --- MOBILE & IPAD RESPONSIVE LAYOUT --- */
+/* --- MOBILE & PHONE RESPONSIVE LAYOUT --- */
 @media (max-width: 900px) {
     body, html {
-        overflow: hidden;
         height: 100%;
+        overflow: hidden;
     }
+
     .app-container {
         height: 100vh;
-        max-height: 100vh;
         overflow: hidden;
         display: flex;
         flex-direction: column;
     }
+
+    /* Compact header - just logo and download button */
     .header {
         height: auto;
-        flex-wrap: wrap;
         padding: 10px 14px;
-        gap: 8px;
         flex-shrink: 0;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
-    .quick-stats {
-        flex-wrap: wrap;
-        width: 100%;
-        justify-content: space-between;
-        gap: 6px;
-    }
-    .stat-badge {
-        flex: 1;
-        min-width: calc(33% - 6px);
-        padding: 4px 6px;
-    }
-    .stat-value {
-        font-size: 0.8rem;
-    }
-    .header-actions {
-        width: 100%;
-    }
+    .quick-stats { display: none; }
+    .header-actions { flex-shrink: 0; }
     .header-actions .btn {
-        width: 100%;
-        justify-content: center;
-        padding: 8px;
+        font-size: 0.75rem;
+        padding: 8px 12px;
+        white-space: nowrap;
     }
+    .header-actions .btn span { display: none; }
+
+    /* Main workspace stacks vertically and scrolls */
     .main-workspace {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
-    }
-    /* By default on mobile (Steps 1-4), fill screen with controls sidebar and hide 3D stage */
-    .main-workspace:not(.mobile-show-preview) .controls-sidebar {
-        display: flex !important;
-        flex: 1;
-        height: 100%;
         overflow-y: auto;
-        padding: 14px;
-        max-height: none;
+        -webkit-overflow-scrolling: touch;
+        gap: 0;
     }
-    .main-workspace:not(.mobile-show-preview) .preview-stage {
-        display: none !important;
-    }
-    /* On Step 5 (Preview Step), hide controls sidebar and fill screen with 3D stage */
-    .main-workspace.mobile-show-preview .controls-sidebar {
-        display: none !important;
-    }
-    .main-workspace.mobile-show-preview .preview-stage {
-        display: flex !important;
-        flex: 1;
-        height: 100%;
+
+    /* Sticky mini 3D preview at the top */
+    .preview-stage {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: 36vh;
+        min-height: 220px;
+        max-height: 300px;
+        flex-shrink: 0;
         border-radius: 0;
         border: none;
+        border-bottom: 2px solid rgba(0, 229, 255, 0.2);
     }
-    .main-workspace.mobile-show-preview .mobile-preview-header {
-        display: flex !important;
+
+    /* Hide 2D tab and stage toolbar text on mobile to save space */
+    .stage-tab span { display: none; }
+    .stage-toolbar { padding: 8px 12px; }
+    #stageControls { gap: 6px; }
+    #stageControls button { padding: 6px 8px; font-size: 0.7rem; }
+    .stage-tab { padding: 6px 10px; font-size: 0.75rem; }
+
+    /* Controls sidebar scrolls below the sticky preview */
+    .controls-sidebar {
+        flex: 1;
+        overflow-y: visible;
+        padding: 12px;
+        gap: 10px;
     }
-    .mobile-only-btn {
-        display: flex !important;
-        justify-content: center;
+
+    /* Compact control sections */
+    .control-section { padding: 10px; border-radius: 10px; }
+    .section-header h2 { font-size: 0.9rem; }
+    .form-group label { font-size: 0.8rem; }
+    .form-group input, .form-group select { font-size: 0.85rem; }
+    .tab-btn { font-size: 0.78rem; padding: 7px 10px; }
+    .info-box { font-size: 0.72rem; padding: 8px; }
+    .slider-labels { font-size: 0.6rem; }
+
+    /* Wizard mode tweaks: auto-expand all steps as collapsed sections */
+    .control-section.collapsed { display: block; }
+
+    /* Hide mobile-only elements on desktop (default) */
+    .mobile-only-btn { display: none; }
+    .mobile-preview-header { display: none; }
+
+    /* Wizard nav sticks to bottom */
+    #wizardNavContainer {
+        position: sticky;
+        bottom: 0;
+        background: rgba(11, 15, 25, 0.97);
+        padding: 12px;
+        margin: 0 -12px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(12px);
     }
 }
